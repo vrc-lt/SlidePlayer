@@ -126,14 +126,14 @@ namespace VRCLT
         public override void OnVideoReady()
         {
             Debug.Log("OnVideoReady");
+            ChangeVideoPosition(localPage);
             if (!Networking.IsOwner(gameObject))
             {
-                ChangeVideoPosition(localPage);
+                statusText.text = "Video ready. Owner: " + Networking.GetOwner(gameObject).displayName;
             }
             else
             {
                 statusText.text = "Video ready. click \"next\" on control panel to start presentation.";
-                ChangeVideoPosition(localPage);
             }
         }
         public override void OnVideoError(VideoError videoError)
