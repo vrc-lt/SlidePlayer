@@ -33,9 +33,11 @@ namespace VRCLT
         private float timeOffset = 1f;
 
 
-        public void OnURLChanged(){
+        public void OnURLChanged()
+        {
             VRCUrl url = inputField.GetUrl();
-            if(url != null){
+            if (url != null)
+            {
                 Debug.Log("OnURLChanged url: " + url.ToString());
             }
             if (!Networking.IsOwner(gameObject))
@@ -52,13 +54,15 @@ namespace VRCLT
 
         public void OnNextSlideButtonClick()
         {
-            if(Networking.IsOwner(gameObject))
+            if (Networking.IsOwner(gameObject))
             {
                 Debug.Log("OnNextSlideButtonClick as owner");
                 _page++;
                 localPage = _page;
                 ChangeVideoPosition(localPage);
-            }else{
+            }
+            else
+            {
                 statusText.text = "Owner: " + Networking.GetOwner(gameObject).displayName;
             }
         }
@@ -68,7 +72,8 @@ namespace VRCLT
             if (Networking.IsOwner(gameObject))
             {
                 Debug.Log("OnPrevSlideButtonClick as owner");
-                if(_page > 0){
+                if (_page > 0)
+                {
                     _page--;
                     localPage = _page;
                 }
@@ -78,7 +83,8 @@ namespace VRCLT
 
         public void OnResetButtonClick()
         {
-            if (Networking.IsOwner(gameObject)){
+            if (Networking.IsOwner(gameObject))
+            {
                 _page = 0;
                 localPage = _page;
                 ChangeVideoPosition(localPage);
@@ -95,14 +101,17 @@ namespace VRCLT
         public override void OnDeserialization()
         {
             Debug.Log("OnDeserialization");
-            if(!Networking.IsOwner(gameObject)){
-                if(_page != localPage){
+            if (!Networking.IsOwner(gameObject))
+            {
+                if (_page != localPage)
+                {
                     Debug.Log("OnDeserialization: Page Changed");
                     localPage = _page;
                     ChangeVideoPosition(localPage);
                 }
-                if(_syncedURL != null){
-                    if(_syncedURL.ToString() != localURL)
+                if (_syncedURL != null)
+                {
+                    if (_syncedURL.ToString() != localURL)
                     {
                         Debug.Log("OnDeserialization: URL Changed");
                         Debug.Log("Local url: " + localURL);
@@ -117,34 +126,37 @@ namespace VRCLT
         public override void OnVideoReady()
         {
             Debug.Log("OnVideoReady");
-            if(!Networking.IsOwner(gameObject)){
+            if (!Networking.IsOwner(gameObject))
+            {
                 ChangeVideoPosition(localPage);
-            }else{
+            }
+            else
+            {
                 statusText.text = "Video ready. click \"next\" on control panel to start presentation.";
                 ChangeVideoPosition(localPage);
             }
         }
         public override void OnVideoError(VideoError videoError)
-            {
+        {
 
-                switch (videoError)
-                {
-                    case VideoError.RateLimited:
-                        statusText.text = "Rate limited, try again in a few seconds";
-                        break;
-                    case VideoError.PlayerError:
-                        statusText.text = "Video player error";
-                        break;
-                    case VideoError.InvalidURL:
-                        statusText.text = "Invalid URL";
-                        break;
-                    case VideoError.AccessDenied:
-                        statusText.text = "Video blocked, enable untrusted URLs";
-                        break;
-                    default:
-                        statusText.text = "Failed to load video";
-                        break;
-                }
+            switch (videoError)
+            {
+                case VideoError.RateLimited:
+                    statusText.text = "Rate limited, try again in a few seconds";
+                    break;
+                case VideoError.PlayerError:
+                    statusText.text = "Video player error";
+                    break;
+                case VideoError.InvalidURL:
+                    statusText.text = "Invalid URL";
+                    break;
+                case VideoError.AccessDenied:
+                    statusText.text = "Video blocked, enable untrusted URLs";
+                    break;
+                default:
+                    statusText.text = "Failed to load video";
+                    break;
             }
+        }
     }
 }
