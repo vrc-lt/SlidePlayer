@@ -32,24 +32,29 @@ namespace VRCLT
         public float timeSpan = 2f;
         private float timeOffset = 1f;
 
+        public void OnTakeOwnershipClicked()
+        {
+            Debug.Log("Take ownership");
+            Networking.SetOwner(Networking.LocalPlayer, gameObject);
+            inputField.gameObject.SetActive(true);
+        }
 
         public void OnURLChanged()
         {
             VRCUrl url = inputField.GetUrl();
-            if (url != null)
+            if (Networking.IsOwner(gameObject) && url != null)
             {
                 Debug.Log("OnURLChanged url: " + url.ToString());
-            }
-            if (!Networking.IsOwner(gameObject))
-            {
-                Debug.Log("Take ownership");
-                Networking.SetOwner(Networking.LocalPlayer, gameObject);
                 statusText.text = "Loading...";
                 _page = 0;
                 localPage = _page;
+                _syncedURL = url;
+                unityVideoPlayer.LoadURL(url);
             }
-            _syncedURL = url;
-            unityVideoPlayer.LoadURL(url);
+            else
+            {
+                statusText.text = "You must be the owner to set the URL ";
+            }
         }
 
         public void OnNextSlideButtonClick()
@@ -103,6 +108,7 @@ namespace VRCLT
             Debug.Log("OnDeserialization");
             if (!Networking.IsOwner(gameObject))
             {
+                inputField.gameObject.SetActive(false);
                 if (_page != localPage)
                 {
                     Debug.Log("OnDeserialization: Page Changed");
