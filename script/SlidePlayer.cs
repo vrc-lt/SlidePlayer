@@ -13,21 +13,41 @@ using VRC.SDK3.Components.Video;
 namespace VRCLT
 {
     [AddComponentMenu("SlidePlayer")]
+    [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     public class SlidePlayer : UdonSharpBehaviour
     {
-        [UdonSynced]
+        [UdonSynced] [FieldChangeCallback(nameof(URL))]
         VRCUrl _syncedURL;
-        [UdonSynced]
-        int _page = 0;
 
-        string localURL = "";
+        [UdonSynced] [FieldChangeCallback(nameof(Page))]
+        private int _syncedPage;
+
+        private VRCUrl URL
+        {
+            get => _syncedURL;
+            set
+            {
+                _syncedURL = value;
+                Debug.Log("ChangeVideoURL: " + value);
+                unityVideoPlayer.LoadURL(value);
+            }
+        }
+
+        private int Page
+        {
+            get => _syncedPage;
+            set
+            {
+                _syncedPage = value;
+                ChangeVideoPosition();
+            }
+        }
 
         public VRCUrlInputField inputField;
         public Text urlText;
         public Text statusText;
 
         public VRCUnityVideoPlayer unityVideoPlayer;
-        int localPage = 0;
 
         public float timeSpan = 2f;
         private float timeOffset = 1f;
@@ -46,10 +66,9 @@ namespace VRCLT
             {
                 Debug.Log("OnURLChanged url: " + url.ToString());
                 statusText.text = "Loading...";
-                _page = 0;
-                localPage = _page;
-                _syncedURL = url;
-                unityVideoPlayer.LoadURL(url);
+                Page = 0;
+                URL = url;
+                RequestSerialization();
             }
             else
             {
@@ -62,9 +81,8 @@ namespace VRCLT
             if (Networking.IsOwner(gameObject))
             {
                 Debug.Log("OnNextSlideButtonClick as owner");
-                _page++;
-                localPage = _page;
-                ChangeVideoPosition(localPage);
+                Page++;
+                RequestSerialization();
             }
             else
             {
@@ -77,12 +95,11 @@ namespace VRCLT
             if (Networking.IsOwner(gameObject))
             {
                 Debug.Log("OnPrevSlideButtonClick as owner");
-                if (_page > 0)
+                if (Page > 0)
                 {
-                    _page--;
-                    localPage = _page;
+                    Page--;
+                    RequestSerialization();
                 }
-                ChangeVideoPosition(localPage);
             }
         }
 
@@ -90,49 +107,31 @@ namespace VRCLT
         {
             if (Networking.IsOwner(gameObject))
             {
-                _page = 0;
-                localPage = _page;
-                ChangeVideoPosition(localPage);
+                Debug.Log("OnResetButtonClick as owner");
+                Page = 0;
+                RequestSerialization();
             }
         }
 
 
-        private void ChangeVideoPosition(int pageNumber)
+        private void ChangeVideoPosition()
         {
-            Debug.Log("ChangeVideoPosition: " + pageNumber);
-            unityVideoPlayer.SetTime(((float)pageNumber * timeSpan) + timeOffset);
+            Debug.Log("ChangeVideoPosition: " + Page);
+            unityVideoPlayer.SetTime(Page * timeSpan + timeOffset);
         }
 
-        public override void OnDeserialization()
+        public override void OnOwnershipTransferred()
         {
-            Debug.Log("OnDeserialization");
             if (!Networking.IsOwner(gameObject))
             {
                 inputField.gameObject.SetActive(false);
-                if (_page != localPage)
-                {
-                    Debug.Log("OnDeserialization: Page Changed");
-                    localPage = _page;
-                    ChangeVideoPosition(localPage);
-                }
-                if (_syncedURL != null)
-                {
-                    if (_syncedURL.ToString() != localURL)
-                    {
-                        Debug.Log("OnDeserialization: URL Changed");
-                        Debug.Log("Local url: " + localURL);
-                        Debug.Log("Synced url: " + _syncedURL.ToString());
-                        localURL = _syncedURL.ToString();
-                        unityVideoPlayer.LoadURL(_syncedURL);
-                    }
-                }
             }
         }
 
         public override void OnVideoReady()
         {
             Debug.Log("OnVideoReady");
-            ChangeVideoPosition(localPage);
+            ChangeVideoPosition();
             if (!Networking.IsOwner(gameObject))
             {
                 statusText.text = "Video ready. Owner: " + Networking.GetOwner(gameObject).displayName;
