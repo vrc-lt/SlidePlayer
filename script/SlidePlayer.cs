@@ -44,7 +44,6 @@ namespace VRCLT
         }
 
         public VRCUrlInputField inputField;
-        public Text urlText;
         public Text statusText;
 
         public VRCUnityVideoPlayer unityVideoPlayer;
