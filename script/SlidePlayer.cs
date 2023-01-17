@@ -119,7 +119,7 @@ namespace VRCLT
             unityVideoPlayer.SetTime(Page * timeSpan + timeOffset);
         }
 
-        public override void OnOwnershipTransferred()
+        public override void OnOwnershipTransferred(VRCPlayerApi player)
         {
             if (!Networking.IsOwner(gameObject))
             {
